@@ -28,6 +28,10 @@ from tkinter import VERTICAL, ttk
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Pt, RGBColor, Inches
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+import smtplib
 
 
 def setupWin():
@@ -35,7 +39,7 @@ def setupWin():
     win.option_add("*Font", "微軟正黑體 20")
     win.resizable(0, 0)
     win.iconbitmap(
-        "C:\\Users\\user\\Desktop\\Codes\\Python\\getBaZi\\bagua.ico")
+        "bagua.ico")
 
 
 def crawler():
@@ -47,7 +51,7 @@ def crawler():
     global bigFateText
     global loveGod
     global body
-    driver = webdriver.Edge(executable_path="D:\\edgedriver\\msedgedriver")
+    driver = webdriver.Edge(executable_path="msedgedriver")
     driver.set_window_size(1552, 893)
     driver.get("https://myfate.herokuapp.com/")
     print(isLunar)
@@ -290,6 +294,7 @@ def checkname(n):
     global isLeapMonth
     global checkAll
     name = n
+
     with open("names.txt", 'r', encoding="utf-8") as f:
         names = f.readlines()
         for i in names:
@@ -314,6 +319,9 @@ def checkname(n):
 def GUI():
     global name
     global visited
+    global win
+    win.destroy()
+    win = tk.Tk()
     setupWin()
     name_l = tk.Label(text="姓名", font="微軟正黑體 20")
     name_c = ttk.Combobox(win, font="微軟正黑體 20")
@@ -378,7 +386,7 @@ def five_z(i):
         return "土"
     if(i == 8 or i == 9):
         return "金"
-    if(i == 1 or i == 11):
+    if(i == 0 or i == 11):
         return "水"
 
 
@@ -2244,8 +2252,105 @@ def makeWord():
     doc.save(f'.\\Words\\{name}.docx')
 
 
+def send(name):
+    # coding=utf-8
+    win.destroy()
+    file = '.\\Words\\'+str(name)+'.docx'
+    server_address = 'smtp.gmail.com'
+    port = 587
+    send_user = 'why33551@gmail.com'
+    receive_users = 'mama33551@gmail.com'
+    subject = f'{name}的八字命盤'
+    password = "tyevkckncblwgnut"
+
+    mail_type = '1'
+
+    msg = MIMEMultipart()
+    msg['Subject'] = subject
+    msg['From'] = send_user
+    msg['To'] = receive_users
+
+    part_text = MIMEText('請接收以下檔案')
+    msg.attach(part_text)
+
+    part_attach1 = MIMEApplication(open(file, 'rb').read())
+    part_attach1.add_header('Content-Disposition',
+                            'attachment', filename=file)
+    msg.attach(part_attach1)
+
+    smtp = smtplib.SMTP(server_address, port)
+    smtp.ehlo()  # 驗證SMTP伺服器
+    smtp.starttls()
+    smtp.login(send_user, password)
+    smtp.sendmail(send_user, receive_users, msg.as_string())
+    print('郵件傳送成功！')
+    quit()
+
+
+def sendGUI():
+    global name
+    global visited
+    global win
+    win.destroy()
+    win = tk.Tk()
+    setupWin()
+    name_l = tk.Label(text="傳送", font="微軟正黑體 20")
+    name_c = ttk.Combobox(win, font="微軟正黑體 20", state="readonly")
+    recnames = []
+    for file in glob.glob(".\\Words\\*.docx"):
+        recnames.append(str(file)[8:-5])
+    name_c['value'] = recnames
+    name_c.current(0)
+    name_b = tk.Button(
+        text="確定", command=lambda: send(name_c.get()), font="微軟正黑體 15")
+    name_l.grid(row=0, column=0)
+    name_c.grid(row=0, column=1)
+    name_b.grid(row=0, column=2)
+
+
+def dele(name):
+    win.destroy()
+    file = '.\\Words\\'+str(name)+'.docx'
+    os.remove(file)
+    quit()
+
+
+def delGUI():
+    global name
+    global visited
+    global win
+    win.destroy()
+    win = tk.Tk()
+    setupWin()
+    name_l = tk.Label(text="刪除", font="微軟正黑體 20")
+    name_c = ttk.Combobox(win, font="微軟正黑體 20", state="readonly")
+    recnames = []
+    for file in glob.glob(".\\Words\\*.docx"):
+        recnames.append(str(file)[8:-5])
+    name_c['value'] = recnames
+    name_c.current(0)
+    name_b = tk.Button(
+        text="確定", command=lambda: dele(name_c.get()), font="微軟正黑體 15")
+    name_l.grid(row=0, column=0)
+    name_c.grid(row=0, column=1)
+    name_b.grid(row=0, column=2)
+
+
+def menuGUI():
+    setupWin()
+    add_b = tk.Button(
+        text="新增", command=GUI, font="微軟正黑體 15")
+    add_b.pack()
+    send_b = tk.Button(
+        text="傳送E-mail", command=sendGUI, font="微軟正黑體 15")
+    send_b.pack()
+    del_b = tk.Button(
+        text="刪除", command=delGUI, font="微軟正黑體 15", bg="red")
+    del_b.pack()
+    win.mainloop()
+
+
 # main
-win = tk.Tk()
 name = " "
 year = 0
 mon = 0
@@ -2257,7 +2362,9 @@ isMan = True
 isLunar = False
 isLeapMonth = False
 checkAll = False
-GUI()
+win = tk.Tk()
+menuGUI()
+
 addNewData()
 if not checkAll:
     exit()
@@ -2281,24 +2388,8 @@ body = ""
 personality = {}
 horseFlower = {}
 shanshaExplain = {}
-crawler()
-""" print(mainStar)
-print(secondStar)
-print(fate)
-print(bury)
 
-print(eightword_s)
-print(eightword_f)
-print(othershansha)
-print(bigFate)
-print(bigFateText) """
+crawler()
 adjust()
-""" print(shansha)
-print(eightword_f_elem)
-print(eightword_s_elem)
-print(bigFateYears)
-print(loveGod)
-print(personality)
-print(horseFlower)
-print(shanshaExplain) """
+
 makeWord()
