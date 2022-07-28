@@ -1,3 +1,4 @@
+# coding:utf-8
 from ast import If
 from cgitb import small
 from html.entities import entitydefs
@@ -32,6 +33,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import smtplib
+from datetime import date
 
 
 def setupWin():
@@ -43,10 +45,6 @@ def setupWin():
 
 
 def crawler():
-    print(year)
-    print(isLeapMonth)
-    print(isLunar)
-    print(isMan)
     global bigFate
     global bigFateText
     global loveGod
@@ -54,7 +52,6 @@ def crawler():
     driver = webdriver.Edge(executable_path="msedgedriver")
     driver.set_window_size(1552, 893)
     driver.get("https://myfate.herokuapp.com/")
-    print(isLunar)
     if isLunar:
         driver.find_element("id", "lunar").click()
     if isMan:
@@ -149,6 +146,12 @@ def crawler():
     for i in range(0, len(shanshaExplain_obj), 2):
         shanshaExplain[str(shanshaExplain_obj[i].text)] = str(
             shanshaExplain_obj[i+1].text)
+
+    bornDay_obj = driver.find_elements(
+        By.XPATH, "//div[@class = 'container px-4'][last()]//div[@class = 'flexcontainer'][1]//div[@class = 'hcontainer']")
+    for i in range(0, len(bornDay_obj)):
+
+        bornDay.append(str((bornDay_obj[i].text).replace('\n', '')))
     driver.quit()
 
 
@@ -191,6 +194,7 @@ def checkdata(l, g, y, m, d, h):
     global day
     global hr
     global checkAll
+    print(y)
     isMan = (g == 1)
     isLunar = (l == 2)
     year = y
@@ -237,7 +241,7 @@ def GUI2():
     year_c = ttk.Combobox(win, state="readonly", font="微軟正黑體 20")
     years = []
     for i in range(1900, 2051):
-        years.append(f" {i}")
+        years.append(f" {i} 民國{i-1911}")
     year_c['value'] = years
     year_c.current(100)
     year_l1.grid(column=0, row=4, sticky="W")
@@ -275,7 +279,7 @@ def GUI2():
     hr_l.grid(column=2, row=7, sticky="W")
 
     data_b = tk.Button(text="確定", command=lambda: checkdata(radioValue.get(), gender.get(), int(
-        year_c.get()), int(mon_c.get()), int(day_c.get()), int(hr_c.get())), font="微軟正黑體 15")
+        str(year_c.get())[:5]), int(mon_c.get()), int(day_c.get()), int(hr_c.get())), font="微軟正黑體 15")
     data_b.grid(row=8, column=3)
 
     win.mainloop()
@@ -391,6 +395,9 @@ def five_z(i):
 
 
 def adjust():
+    global couterAnimal
+    global yourAnimal
+    global sixCan
     a = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
     b = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
     e = []
@@ -415,6 +422,142 @@ def adjust():
         z.append(d[eightword_s[i]])
         eightword_f_elem.append(five_g(g[i]))
         eightword_s_elem.append(five_z(z[i]))
+    yourAnimal = z[0]
+    counterAnimal_list = [100, 8, 7, 6, 5, 4, 3, 2, 1, 12, 11, 10, 9]
+    couterAnimal = counterAnimal_list[yourAnimal+1]-1
+
+    sixZi = eightword_s
+    todayYear = date.today().year
+    age = todayYear - year + 1
+    tmp = ""
+    for i in range(0, len(bigFateYears)):
+        if(age >= (i*10) + int(bigFate)):
+            tmp = bigFateYears[i]
+        else:
+            break
+    sixZi.append(tmp[0])
+    sixZi.append(tmp[1])
+    sixZi.append(flowYears[age][0])
+    sixZi.append(flowYears[age][1])
+
+    if all(elem in sixZi for elem in ['寅', '卯', '辰']):
+        sixCan += "'寅','卯','辰'全會木局 /"
+    if all(elem in sixZi for elem in ['巳', '午', '未']):
+        sixCan += "'巳','午','未'全會火局 /"
+    if all(elem in sixZi for elem in ['申', '酉', '戌']):
+        sixCan += "'申','酉','戌''全會金局 /"
+    if all(elem in sixZi for elem in ['亥', '子', '丑']):
+        sixCan += "'亥','子','丑'全會水局 /"
+    sixZi = sixZi + eightword_f
+    if all(elem in sixZi for elem in ['甲', '庚']):
+        sixCan += "甲庚相沖 / "
+    if all(elem in sixZi for elem in ['乙', '辛']):
+        sixCan += "乙辛相沖 / "
+    if all(elem in sixZi for elem in ['丙', '壬']):
+        sixCan += "丙壬相沖 / "
+    if all(elem in sixZi for elem in ['丁', '癸']):
+        sixCan += "丁癸相沖 / "
+
+    if all(elem in sixZi for elem in ['甲', '己']):
+        sixCan += "甲己化土 / "
+    if all(elem in sixZi for elem in ['乙', '庚']):
+        sixCan += "乙庚化金 / "
+    if all(elem in sixZi for elem in ['丁', '壬']):
+        sixCan += "丁壬化木 / "
+    if all(elem in sixZi for elem in ['丙', '辛']):
+        sixCan += "丙辛化水 / "
+    if all(elem in sixZi for elem in ['戊', '癸']):
+        sixCan += "戊癸化火 / "
+
+    if all(elem in sixZi for elem in ['子', '丑']):
+        sixCan += "子丑化土 / "
+    if all(elem in sixZi for elem in ['寅', '亥']):
+        sixCan += "寅亥化木 / "
+    if all(elem in sixZi for elem in ['卯', '戌']):
+        sixCan += "卯戌化火 / "
+    if all(elem in sixZi for elem in ['辰', '酉']):
+        sixCan += "辰酉化金 / "
+    if all(elem in sixZi for elem in ['巳', '申']):
+        sixCan += "巳申化水 / "
+    if all(elem in sixZi for elem in ['午', '未']):
+        sixCan += "午未化日月 / "
+
+    if all(elem in sixZi for elem in ['申', '子', '辰']):
+        sixCan += "申子辰三合化水 / "
+    if all(elem in sixZi for elem in ['寅', '午', '戌']):
+        sixCan += "寅午戌三合化火 / "
+    if all(elem in sixZi for elem in ['巳', '酉', '丑']):
+        sixCan += "巳酉丑三合化金 / "
+    if all(elem in sixZi for elem in ['亥', '卯', '未']):
+        sixCan += "亥卯未三合化木 / "
+    if all(elem in sixZi for elem in ['辰', '戌', '丑', '未']):
+        sixCan += "辰戌丑未合會土 / "
+
+    if all(elem in sixZi for elem in ['子', '午']):
+        sixCan += "子午相沖 / "
+    if all(elem in sixZi for elem in ['丑', '未']):
+        sixCan += "丑未相沖 / "
+    if all(elem in sixZi for elem in ['寅', '申']):
+        sixCan += "寅申相沖 / "
+    if all(elem in sixZi for elem in ['卯', '酉']):
+        sixCan += "卯酉相沖 / "
+    if all(elem in sixZi for elem in ['辰', '戌']):
+        sixCan += "辰戌相沖 / "
+    if all(elem in sixZi for elem in ['巳', '亥']):
+        sixCan += "巳亥相沖 / "
+
+    if all(elem in sixZi for elem in ['寅', '巳']):
+        sixCan += "寅刑巳 / "
+    if all(elem in sixZi for elem in ['申', '巳']):
+        sixCan += "巳刑申 / "
+    if all(elem in sixZi for elem in ['申', '寅']):
+        sixCan += "申刑寅 / "
+    if all(elem in sixZi for elem in ['未', '丑']):
+        sixCan += "未刑丑 / "
+    if all(elem in sixZi for elem in ['戌', '丑']):
+        sixCan += "丑刑戌 / "
+    if all(elem in sixZi for elem in ['戌', '未']):
+        sixCan += "戌刑未 / "
+    if all(elem in sixZi for elem in ['子', '卯']):
+        sixCan += "子刑卯 /卯刑子 /"
+    cnt = 0
+    for i in sixZi:
+        if i == '辰':
+            cnt += 1
+    if cnt == 2:
+        sixCan += "辰刑辰 /"
+    cnt = 0
+    for i in sixZi:
+        if i == '酉':
+            cnt += 1
+    if cnt == 2:
+        sixCan += "酉刑酉 /"
+    cnt = 0
+    for i in sixZi:
+        if i == '午':
+            cnt += 1
+    if cnt == 2:
+        sixCan += "午刑午 /"
+    cnt = 0
+    for i in sixZi:
+        if i == '亥':
+            cnt += 1
+    if cnt == 2:
+        sixCan += "亥刑亥 /"
+
+    if all(elem in sixZi for elem in ['子', '未']):
+        sixCan += "子未相害 /"
+    if all(elem in sixZi for elem in ['丑', '午']):
+        sixCan += "丑午相害 /"
+    if all(elem in sixZi for elem in ['寅', '巳']):
+        sixCan += "寅巳相害 /"
+    if all(elem in sixZi for elem in ['卯', '辰']):
+        sixCan += "卯辰相害 /"
+    if all(elem in sixZi for elem in ['申', '亥']):
+        sixCan += "申亥相害 /"
+    if all(elem in sixZi for elem in ['酉', '戌']):
+        sixCan += "酉戌相害 /"
+
     listy = []
     listm = []
     listd = []
@@ -623,6 +766,1245 @@ def adjust():
         listy.append("孤鸞日")
     if g[2] == 4 and z[2] == 8:
         listy.append("孤鸞日")
+
+    def check():
+        g = listg
+        z = listz
+
+        if g[2] == 0:
+            for i in range(4):
+                if z[i] == 1 or z[i] == 7:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+        if g[2] == 1:
+            for i in range(4):
+                if z[i] == 0 or z[i] == 8:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 4:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 10:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+        if g[2] == 2:
+            for i in range(4):
+                if z[i] == 11 or z[i] == 9:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+        if g[2] == 3:
+            for i in range(4):
+                if z[i] == 11 or z[i] == 9:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 7:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 7:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 1:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+        if g[2] == 4:
+            for i in range(4):
+                if z[i] == 7 or z[i] == 1:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 4:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+        if g[2] == 5:
+            for i in range(4):
+                if z[i] == 0 or z[i] == 8:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 7:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 4:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 1:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+        if g[2] == 6:
+            for i in range(4):
+                if z[i] == 1 or z[i] == 7:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 10:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+        if g[2] == 7:
+            for i in range(4):
+                if z[i] == 2 or z[i] == 6:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 10:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 4:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+        if g[2] == 8:
+            for i in range(4):
+                if z[i] == 3 or z[i] == 5:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+        if g[2] == 9:
+            for i in range(4):
+                if z[i] == 5 or z[i] == 3:
+                    if i == 0:
+                        listy.append("天乙貴人")
+                    elif i == 1:
+                        listm.append("天乙貴人")
+                    elif i == 2:
+                        listd.append("天乙貴人")
+                    else:
+                        listh.append("天乙貴人")
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("文昌")
+                    elif i == 1:
+                        listm.append("文昌")
+                    elif i == 2:
+                        listd.append("文昌")
+                    else:
+                        listh.append("文昌")
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("十天祿")
+                    elif i == 1:
+                        listm.append("十天祿")
+                    elif i == 2:
+                        listd.append("十天祿")
+                    else:
+                        listh.append("十天祿")
+                if z[i] == 1:
+                    if i == 0:
+                        listy.append("羊刃")
+                    elif i == 1:
+                        listm.append("羊刃")
+                    elif i == 2:
+                        listd.append("羊刃")
+                    else:
+                        listh.append("羊刃")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("紅艷煞")
+                    elif i == 1:
+                        listm.append("紅艷煞")
+                    elif i == 2:
+                        listd.append("紅艷煞")
+                    else:
+                        listh.append("紅艷煞")
+                if z[i] == 7:
+                    if i == 0:
+                        listy.append("飛刃")
+                    elif i == 1:
+                        listm.append("飛刃")
+                    elif i == 2:
+                        listd.append("飛刃")
+                    else:
+                        listh.append("飛刃")
+
+        if z[2] == 0:
+            for i in range(4):
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 4:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 1:
+            for i in range(4):
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 1:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 2:
+            for i in range(4):
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 1:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 3:
+            for i in range(4):
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 7:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 4:
+            for i in range(4):
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 4:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 5:
+            for i in range(4):
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 1:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 6:
+            for i in range(4):
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 10:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 7:
+            for i in range(4):
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 7:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 8:
+            for i in range(4):
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 4:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 9:
+            for i in range(4):
+                if z[i] == 9:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 1:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 10:
+            for i in range(4):
+                if z[i] == 6:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 10:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 11:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+        if z[2] == 11:
+            for i in range(4):
+                if z[i] == 3:
+                    if i == 0:
+                        listy.append("將星")
+                    elif i == 1:
+                        listm.append("將星")
+                    elif i == 2:
+                        listd.append("將星")
+                    else:
+                        listh.append("將星")
+                if z[i] == 7:
+                    if i == 0:
+                        listy.append("華蓋")
+                    elif i == 1:
+                        listm.append("華蓋")
+                    elif i == 2:
+                        listd.append("華蓋")
+                    else:
+                        listh.append("華蓋")
+                if z[i] == 5:
+                    if i == 0:
+                        listy.append("驛馬")
+                    elif i == 1:
+                        listm.append("驛馬")
+                    elif i == 2:
+                        listd.append("驛馬")
+                    else:
+                        listh.append("驛馬")
+                if z[i] == 8:
+                    if i == 0:
+                        listy.append("劫煞")
+                    elif i == 1:
+                        listm.append("劫煞")
+                    elif i == 2:
+                        listd.append("劫煞")
+                    else:
+                        listh.append("劫煞")
+                if z[i] == 2:
+                    if i == 0:
+                        listy.append("亡神")
+                    elif i == 1:
+                        listm.append("亡神")
+                    elif i == 2:
+                        listd.append("亡神")
+                    else:
+                        listh.append("亡神")
+                if z[i] == 0:
+                    if i == 0:
+                        listy.append("桃花")
+                    elif i == 1:
+                        listm.append("桃花")
+                    elif i == 2:
+                        listd.append("桃花")
+                    else:
+                        listh.append("桃花")
+
     shansha[0] = shansha[0] + listy
     shansha[1] = shansha[1] + listm
     shansha[2] = shansha[2] + listd
@@ -1176,9 +2558,9 @@ def adjust():
                 else:
                     listh.append("鬼門關")
 
-    if z[2] == (z[3]+4) % 12:
+    if z[3] == (z[2]+4) % 12:
         listh.append("五鬼關")
-    if z[2] == (z[3]+10) % 12:
+    if z[2] == (z[3]+2) % 12:
         listh.append("天狗煞")
 
     for i in range(4):
@@ -2086,6 +3468,8 @@ def adjust():
     shansha[0] = shansha[0] + listy
     shansha[2] = shansha[2] + listd
     shansha[3] = shansha[3] + listh
+    for i in shansha:
+        i = list(set(i))
 
 
 def place(table, x, y, str, isVerticle, size=15, setWid=False):
@@ -2103,18 +3487,35 @@ def place(table, x, y, str, isVerticle, size=15, setWid=False):
 
 def makeWord():
     doc = Document()  # 新建檔案
-    table = doc.add_table(rows=9, cols=5, style='Table Grid')
+    table = doc.add_table(rows=12, cols=5, style='Table Grid')
     row = 0
     table.cell(row, 0).merge(table.cell(row, 4))
     table.cell(1, 0).merge(table.cell(1, 4))
     place(table, row, 0, f"{name}的八字命盤", False)
     row += 1
-    if isLunar:
-        place(table, row, 0,
-              f"農曆 {year-1911} 年 {mon} 月 {day} 日 {hr} 時 生", False)
+    table.cell(row, 0).merge(table.cell(row, 4))
+    if(isMan):
+        gender = "男"
     else:
-        place(table, row, 0,
-              f"民國 {year-1911} 年 {mon} 月 {day} 日 {hr} 時 生", False)
+        gender = "女"
+    animal = "鼠牛虎兔龍蛇馬羊猴雞狗豬"
+    place(table, row, 0,
+          f"性別: {gender}  生肖: {animal[yourAnimal]}  六害: {animal[couterAnimal]}", False)
+    row += 1
+    table.cell(row, 0).merge(table.cell(row, 4))
+    place(table, row, 0, bornDay[0], False)
+    row += 1
+    table.cell(row, 0).merge(table.cell(row, 4))
+    place(table, row, 0, bornDay[1], False)
+    row += 1
+    if len(sixCan) != 0:
+        table.add_row()
+        table.cell(row, 0).merge(table.cell(row, 4))
+        place(table, row, 0, sixCan, False)
+        row += 1
+    for i in range(4):
+        tmp_l = ["時柱", "日柱", "月柱", "年柱"]
+        place(table, row, i, tmp_l[i], True)
     row += 1
     place(table, row, 4, "主星", True, 12)
     for i in range(3, -1, -1):
@@ -2137,13 +3538,9 @@ def makeWord():
         table.cell(row, i).paragraphs[0].runs[0].font.size = Pt(20)
         table.cell(row, i).paragraphs[0].runs[0].font.bold = True
         table.cell(row, i).paragraphs[1].runs[0].font.size = Pt(10)
-        table.cell(
-            row, i).paragraphs[1].runs[0].font.color.rgb = toColor[eightword_f_elem[3-i]]
         table.cell(row, i).paragraphs[2].runs[0].font.size = Pt(20)
         table.cell(row, i).paragraphs[2].runs[0].font.bold = True
         table.cell(row, i).paragraphs[3].runs[0].font.size = Pt(10)
-        table.cell(
-            row, i).paragraphs[3].runs[0].font.color.rgb = toColor[eightword_s_elem[3-i]]
     row += 1
     place(table, row, 4, "藏", True, 12)
     for i in range(3, -1, -1):
@@ -2369,6 +3766,7 @@ addNewData()
 if not checkAll:
     exit()
 mainStar = []
+bornDay = []
 eightword_f = []
 eightword_s = []
 eightword_f_elem = []
@@ -2388,7 +3786,9 @@ body = ""
 personality = {}
 horseFlower = {}
 shanshaExplain = {}
-
+couterAnimal = 0
+yourAnimal = 0
+sixCan = ""
 crawler()
 adjust()
 
